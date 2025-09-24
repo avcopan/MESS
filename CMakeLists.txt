@@ -1,5 +1,7 @@
-project(MESS C CXX)
+project(mess C CXX)
 cmake_minimum_required(VERSION 3.16)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -421,11 +423,18 @@ target_link_libraries(messsym
     ${CMAKE_DL_LIBS}
 )
 
-install(TARGETS mess DESTINATION bin)
-install(TARGETS mess-v2 DESTINATION bin)
-install(TARGETS messpf DESTINATION bin)
-install(TARGETS messabs DESTINATION bin)
-install(TARGETS messsym DESTINATION bin)
+include(GNUInstallDirs)
+install(
+    TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}Targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${BINDIR}
+)
+install(TARGETS mess-v2 DESTINATION ${BINDIR})
+install(TARGETS messpf DESTINATION ${BINDIR})
+install(TARGETS messabs DESTINATION ${BINDIR})
+install(TARGETS messsym DESTINATION ${BINDIR})
 
 # Create a direct wrapper for missing SLATEC functions
 file(WRITE ${CMAKE_BINARY_DIR}/slatec_wrapper.f "
