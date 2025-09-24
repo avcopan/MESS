@@ -1,0 +1,29 @@
+[workspace]
+channels = ["conda-forge", "Auto-Mech"]
+platforms = ["osx-arm64", "linux-64", "osx-64", "win-64"]
+preview = ["pixi-build"]                                  
+
+[dependencies] 
+mess = { path = "." }
+
+[package] 
+name = "mess"
+version = "2.10.0"
+
+[package.build]
+backend = { name = "pixi-build-cmake", version = "0.3.*" }
+
+[package.build.config]
+extra-args = [
+    "-DCMAKE_BUILD_TYPE=Release",
+    "-DBUILD_SHARED_LIBS=ON"
+]
+
+[package.host-dependencies]
+cmake = "3.20.*"
+blas = "*"
+openblas = "*"
+gsl = "*"
+qd = "*"
+slatec = "*"
+gfortran = "*"
