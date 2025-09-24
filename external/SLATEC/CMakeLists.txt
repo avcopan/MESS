@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.16)
+project(slatec Fortran)
+
+file(GLOB LIBRARY_SOURCES "${PROJECT_SOURCE_DIR}/src/*.f")
+
+add_library(slatec SHARED ${LIBRARY_SOURCES})
+
+include(GNUInstallDirs)
+install(
+    TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}Targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${BINDIR}
+)

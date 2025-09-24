@@ -1,0 +1,26 @@
+package:
+  name: slatec
+  version: 4.3.0
+
+source:
+  path: .
+  use_gitignore: true 
+
+build:
+  number: 0
+  script: | 
+    cmake $CMAKE_ARGS \
+      -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=$PREFIX \
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      -B $SRC_DIR/../build \
+      -S .
+
+    cmake --build $SRC_DIR/../build --target install
+
+requirements:
+  build: 
+    - ${{ compiler('fortran') }}
+    - cmake
+    - ninja
