@@ -338,6 +338,7 @@ add_library(messlibs
     ${PROJECT_SOURCE_DIR}/src/libmess/potential.cc
     ${PROJECT_SOURCE_DIR}/src/libmess/system.cc
     ${PROJECT_SOURCE_DIR}/src/libmess/trajectory.cc)
+set_target_properties(messlibs PROPERTIES OUTPUT_NAME "mess")
 
 # Add dependency on external libraries if needed
 if(DEPENDENCIES_TARGETS)
@@ -435,6 +436,7 @@ install(TARGETS mess-v2 DESTINATION ${BINDIR})
 install(TARGETS messpf DESTINATION ${BINDIR})
 install(TARGETS messabs DESTINATION ${BINDIR})
 install(TARGETS messsym DESTINATION ${BINDIR})
+install(TARGETS messlibs LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # Create a direct wrapper for missing SLATEC functions
 file(WRITE ${CMAKE_BINARY_DIR}/slatec_wrapper.f "
