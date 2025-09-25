@@ -1,10 +1,12 @@
 project(MESS C CXX)
 cmake_minimum_required(VERSION 3.16)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
 # Options for automatic dependency handling
@@ -421,11 +423,12 @@ target_link_libraries(messsym
     ${CMAKE_DL_LIBS}
 )
 
-install(TARGETS mess DESTINATION bin)
-install(TARGETS mess-v2 DESTINATION bin)
-install(TARGETS messpf DESTINATION bin)
-install(TARGETS messabs DESTINATION bin)
-install(TARGETS messsym DESTINATION bin)
+install(TARGETS mess DESTINATION ${BINDIR})
+install(TARGETS mess-v2 DESTINATION ${BINDIR})
+install(TARGETS messpf DESTINATION ${BINDIR})
+install(TARGETS messabs DESTINATION ${BINDIR})
+install(TARGETS messsym DESTINATION ${BINDIR})
+install(TARGETS messlibs LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # Create a direct wrapper for missing SLATEC functions
 file(WRITE ${CMAKE_BINARY_DIR}/slatec_wrapper.f "
