@@ -1,248 +1,22 @@
-# =============================================================================
-# Project Definition
-# =============================================================================
 cmake_minimum_required(VERSION 3.22)
 project(MESS LANGUAGES C CXX Fortran)
 
-# =============================================================================
-# Modern CMake Practices & Project-Wide Settings
-# =============================================================================
-# Set C++ standard for all targets in the project
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
+find_library(SLATEC REQUIRED NAMES slatec libslatec)
+find_package(GSL REQUIRED)
+find_package(OpenMP REQUIRED)
+message(STATUS "Found BLAS: ${BLAS_LIBRARIES}")
+message(STATUS "Found LAPACK: ${LAPACK_LIBRARIES}")
+message(STATUS "Found SLATEC: ${SLATEC_LIBRARIES}")
+message(STATUS "Found GSL: ${GSL_LIBRARIES}")
+message(STATUS "Found OpenMP: ${OPENMP_LIBRARIES}")
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-# Use a dedicated folder for external projects to keep the build directory clean
-set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/_deps)
-
-# Include required modules
-include(FetchContent)
-include(ExternalProject)
-
-# =============================================================================
-# Project Options
-# =============================================================================
-option(USE_MKL "Use Intel MKL instead of OpenBLAS" OFF)
-option(USE_INT64 "Use 64-bit integers for BLAS/LAPACK (ILP64 interface)" OFF)
-option(USE_CONDA_LIBS "Use libraries from conda environment" OFF)
-# option(USE_DIRECT_CBLAS "Use direct CBLAS instead of GSL's wrapper" OFF) # This option was unused.
-
-# =============================================================================
-# Build Configuration
-# =============================================================================
-# Set default build type to Release if not specified
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
-endif()
-
-# Print build configuration
-message(STATUS "==========================================")
-message(STATUS "MESS Build Configuration")
-message(STATUS "==========================================")
-message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
-message(STATUS "USE_MKL: ${USE_MKL}")
-message(STATUS "USE_INT64: ${USE_INT64}")
-message(STATUS "USE_CONDA_LIBS: ${USE_CONDA_LIBS}")
-message(STATUS "==========================================")
-
-# =============================================================================
-# Find Dependencies (BLAS, LAPACK, GSL, MPI, etc.)
-# =============================================================================
-include(FetchContent)
-
-# --- BLAS / LAPACK Configuration ---
-message(STATUS "Configuring BLAS and LAPACK...")
-
-if(USE_CONDA_LIBS)
-  message(STATUS "Using conda environment libraries")
-  set(CONDA_LIB_PATH "/home/keceli/miniconda3/envs/kmess-env/lib")
-  
-  if(USE_MKL)
-    message(STATUS "Using Intel MKL from conda")
-    # Use explicit MKL libraries to ensure proper 64-bit integer support
-    if(USE_INT64)
-    set(BLAS_LIBRARIES 
-        ${CONDA_LIB_PATH}/libmkl_intel_ilp64.so
-        ${CONDA_LIB_PATH}/libmkl_gnu_thread.so
-        ${CONDA_LIB_PATH}/libmkl_core.so
-        m
-        dl
-        gomp
-      )
-      set(LAPACK_LIBRARIES ${BLAS_LIBRARIES})
-      message(STATUS "  - Using 64-bit integers (ILP64)")
-    else()
-    set(BLAS_LIBRARIES 
-        ${CONDA_LIB_PATH}/libmkl_intel_lp64.so
-        ${CONDA_LIB_PATH}/libmkl_gnu_thread.so
-        ${CONDA_LIB_PATH}/libmkl_core.so
-        m
-        dl
-        gomp
-      )
-      set(LAPACK_LIBRARIES ${BLAS_LIBRARIES})
-      message(STATUS "  - Using 32-bit integers (LP64)")
-    endif()
-  else()
-    message(STATUS "Using OpenBLAS from conda")
-    set(BLAS_LIBRARIES ${CONDA_LIB_PATH}/libopenblas.so)
-    set(LAPACK_LIBRARIES ${CONDA_LIB_PATH}/libopenblas.so)
-    if(USE_INT64)
-      message(STATUS "  - Using 64-bit integers (ILP64)")
-    else()
-      message(STATUS "  - Using 32-bit integers (LP64)")
-    endif()
-  endif()
-elseif(USE_MKL)
-  message(STATUS "Using Intel MKL")
-  if(USE_INT64)
-    set(BLAS_LIBRARIES 
-      /opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_intel_ilp64.so
-      /opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_gnu_thread.so
-      /opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_core.so
-      m
-      dl
-      gomp
-    )
-  set(LAPACK_LIBRARIES ${BLAS_LIBRARIES})
-    message(STATUS "  - Using 64-bit integers (ILP64)")
-  else()
-    set(BLAS_LIBRARIES 
-      /opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_intel_lp64.so
-      /opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_gnu_thread.so
-      /opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_core.so
-      m
-      dl
-      gomp
-    )
-  set(LAPACK_LIBRARIES ${BLAS_LIBRARIES})
-    message(STATUS "  - Using 32-bit integers (LP64)")
-  endif()
-else()
-  message(STATUS "Using OpenBLAS")
-  set(BLAS_LIBRARIES /usr/lib/x86_64-linux-gnu/libopenblas.so)
-  set(LAPACK_LIBRARIES /usr/lib/x86_64-linux-gnu/libopenblas.so)
-  if(USE_INT64)
-    message(STATUS "  - Using 64-bit integers (ILP64)")
-  else()
-    message(STATUS "  - Using 32-bit integers (LP64)")
-  endif()
-endif()
-
-message(STATUS "BLAS Libraries: ${BLAS_LIBRARIES}")
-message(STATUS "LAPACK Libraries: ${LAPACK_LIBRARIES}")
-
-
-# --- GSL (GNU Scientific Library) ---
-# First, try to find an installed version. If not found, download and build it.
-if(USE_CONDA_LIBS)
-  message(STATUS "Using GSL from conda environment")
-  set(GSL_INCLUDE_DIRS "/home/keceli/miniconda3/envs/kmess-env/include")
-  set(GSL_LIBRARIES "/home/keceli/miniconda3/envs/kmess-env/lib/libgsl.so")
-  set(GSL_DOWNLOADED TRUE)
-else()
-  find_package(GSL QUIET)
-  if(NOT GSL_FOUND)
-    message(STATUS "GSL not found. Building from source...")
-  if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
-    FetchContent_Declare(
-      gsl_external
-      URL "https://ftp.gnu.org/gnu/gsl/gsl-2.8.tar.gz"
-      URL_HASH SHA256=6a99eeed15632c6354895b1dd542ed5a855c0f15d9ad1326c6fe2b2c9e423190
-      DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-    )
-  else()
-    FetchContent_Declare(
-      gsl_external
-      URL "https://ftp.gnu.org/gnu/gsl/gsl-2.8.tar.gz"
-      URL_HASH SHA256=6a99eeed15632c6354895b1dd542ed5a855c0f15d9ad1326c6fe2b2c9e423190
-    )
-  endif()
-  FetchContent_MakeAvailable(gsl_external)
-
-  # Configure GSL with internal CBLAS (more reliable for CI)
-  set(GSL_CONFIGURE_OPTIONS
-    "--prefix=${EXTERNAL_INSTALL_LOCATION}"
-    "--disable-shared"
-    "--enable-static"
-    "--with-cblas=internal"
-  )
-
-  ExternalProject_Add(
-    gsl_project
-    SOURCE_DIR ${gsl_external_SOURCE_DIR}
-    BINARY_DIR ${gsl_external_BINARY_DIR}
-    CONFIGURE_COMMAND <SOURCE_DIR>/configure ${GSL_CONFIGURE_OPTIONS}
-    BUILD_COMMAND $(MAKE)
-    INSTALL_COMMAND $(MAKE) install
-    LOG_CONFIGURE TRUE
-    LOG_BUILD TRUE
-    LOG_INSTALL TRUE
-  )
-
-  set(GSL_INCLUDE_DIRS ${EXTERNAL_INSTALL_LOCATION}/include)
-    set(GSL_LIBRARIES ${EXTERNAL_INSTALL_LOCATION}/lib/libgsl.a)
-  set(GSL_DOWNLOADED TRUE)
-else()
-  message(STATUS "Found GSL: ${GSL_LIBRARIES}")
-endif()
-endif()
-
-
-# --- SLATEC (Common Mathematical Library) ---
-# First, try to find an installed version. If not found, download and build it.
-find_library(SLATEC_LIBRARY NAMES slatec libslatec)
-if(NOT SLATEC_LIBRARY)
-    message(STATUS "SLATEC not found. Building from source...")
-    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
-      FetchContent_Declare(
-          slatec_external
-          URL "http://www.netlib.org/slatec/slatec_src.tgz"
-          URL_HASH SHA1=6100817113c115778eddec5811065be818157554
-          DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-      )
-    else()
-      FetchContent_Declare(
-          slatec_external
-          URL "http://www.netlib.org/slatec/slatec_src.tgz"
-          URL_HASH SHA1=6100817113c115778eddec5811065be818157554
-      )
-    endif()
-    FetchContent_Populate(slatec_external)
-
-    # Glob all Fortran sources from the downloaded content
-    file(GLOB SLATEC_SOURCES "${slatec_external_SOURCE_DIR}/*.f")
-
-    # Create a static library from the SLATEC sources
-    add_library(slatec_lib STATIC ${SLATEC_SOURCES})
-    
-    # Set Fortran compiler flags for SLATEC (Fortran 77 compatibility)
-    target_compile_options(slatec_lib PRIVATE 
-        -std=legacy
-        -fPIC
-        -O2
-        -w  # Suppress warnings for old Fortran code
-    )
-    
-    # Link Fortran runtime
-    target_link_libraries(slatec_lib PRIVATE gfortran)
-    
-    set(SLATEC_LIBRARIES slatec_lib)
-    set(SLATEC_DOWNLOADED TRUE)
-else()
-    message(STATUS "Found SLATEC: ${SLATEC_LIBRARY}")
-    set(SLATEC_LIBRARIES ${SLATEC_LIBRARY})
-endif()
-
-
-# --- Other Optional Libraries ---
-find_library(QD_LIBRARIES NAMES qd libqd)
-find_package(MPI QUIET)
-
-# =============================================================================
-# Library Target (messlibs)
-# =============================================================================
+# Define the library
 set(MESS_SOURCES
   src/libmess/atom.cc
   src/libmess/configuration.cc
@@ -277,76 +51,54 @@ set(MESS_SOURCES
   src/libmess/units.cc
 )
 
-add_library(messlibs STATIC ${MESS_SOURCES})
+add_library(messlibs ${MESS_SOURCES})
 
-# Add dependencies if they were built from source
-if(GSL_DOWNLOADED AND NOT USE_CONDA_LIBS)
-  add_dependencies(messlibs gsl_project)
-endif()
+add_executable(mess ${PROJECT_SOURCE_DIR}/src/mess_driver.cc)
+add_executable(mess-v2 ${PROJECT_SOURCE_DIR}/src/mess_test.cc)
+add_executable(messpf ${PROJECT_SOURCE_DIR}/src/partition_function.cc)
+add_executable(messsym ${PROJECT_SOURCE_DIR}/src/gumbo.cc)
 
-# --- Target Properties: Include Directories ---
-target_include_directories(messlibs PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/libmess>
-  $<INSTALL_INTERFACE:include>
-  ${GSL_INCLUDE_DIRS}
+# Link executables
+target_link_libraries(mess
+    PRIVATE
+        OpenMP::OpenMP_CXX
+        messlibs
+        ${BLAS_LIBRARIES}
+        ${LAPACK_LIBRARIES}
+        ${GSL_LIBRARIES}
+        ${SLATEC}
+        ${CMAKE_DL_LIBS}
 )
-
-# --- Target Properties: Compile Definitions ---
-if(USE_INT64)
-  target_compile_definitions(messlibs PUBLIC -DUSE_INT64)
-else()
-  target_compile_definitions(messlibs PUBLIC -DUSE_32BIT_INTEGERS)
-endif()
-
-# --- Target Properties: Link Libraries ---
-target_link_libraries(messlibs PUBLIC
-  ${LAPACK_LIBRARIES} # LAPACK depends on BLAS, so this is often sufficient
-    ${GSL_LIBRARIES}
-  ${SLATEC_LIBRARIES}
-  m dl # Common system libraries
+target_link_libraries(mess-v2
+    PRIVATE
+        OpenMP::OpenMP_CXX
+        messlibs
+        ${BLAS_LIBRARIES}
+        ${LAPACK_LIBRARIES}
+        ${GSL_LIBRARIES}
+        ${SLATEC}
+        ${CMAKE_DL_LIBS}
 )
-
-# --- Conditionally link optional libraries ---
-if(QD_LIBRARIES)
-    message(STATUS "Found and linking QD library: ${QD_LIBRARIES}")
-    target_link_libraries(messlibs PUBLIC ${QD_LIBRARIES})
-else()
-    message(STATUS "Optional QD library not found, skipping.")
-endif()
-
-# --- Handle MPI ---
-if(MPI_FOUND)
-  message(STATUS "MPI found, adding communication sources and linking.")
-  target_sources(messlibs PRIVATE
-    src/libmess/comm.cc
-    src/libmess/auto_comm.cc
-    src/libmess/new_comm.cc
-  )
-  target_include_directories(messlibs PUBLIC ${MPI_CXX_INCLUDE_PATH})
-  target_link_libraries(messlibs PUBLIC MPI::MPI_CXX)
-endif()
-
-
-# =============================================================================
-# Executable Targets
-# =============================================================================
-add_executable(mess src/mess_driver.cc)
-add_executable(mess-v2 src/mess_test.cc)
-add_executable(messpf src/partition_function.cc)
-add_executable(messsym src/gumbo.cc)
-
-# Link all standard executables to the main library
-target_link_libraries(mess messlibs)
-target_link_libraries(mess-v2 messlibs)
-target_link_libraries(messpf messlibs)
-target_link_libraries(messsym messlibs)
-
-# Handle MPI executable separately
-if(MPI_FOUND)
-  add_executable(messabs src/mess_mpi.cc)
-  target_link_libraries(messabs messlibs)
-endif()
+target_link_libraries(messpf
+    PRIVATE
+        OpenMP::OpenMP_CXX
+        messlibs
+        ${BLAS_LIBRARIES}
+        ${LAPACK_LIBRARIES}
+        ${GSL_LIBRARIES}
+        ${SLATEC}
+        ${CMAKE_DL_LIBS}
+)
+target_link_libraries(messsym
+    PRIVATE
+        OpenMP::OpenMP_CXX
+        messlibs
+        ${BLAS_LIBRARIES}
+        ${LAPACK_LIBRARIES}
+        ${GSL_LIBRARIES}
+        ${SLATEC}
+        ${CMAKE_DL_LIBS}
+)
 
 install(TARGETS mess DESTINATION ${BINDIR})
 install(TARGETS mess-v2 DESTINATION ${BINDIR})

@@ -8,7 +8,7 @@ mess = { path = "." }
 
 [package] 
 name = "mess"
-version = "2.10.6"
+version = "2.10.18"
 
 [package.build]
 backend = { name = "pixi-build-cmake", version = "0.3.*" }
@@ -16,7 +16,6 @@ backend = { name = "pixi-build-cmake", version = "0.3.*" }
 [package.build.config]
 extra-args = [
     "-DCMAKE_BUILD_TYPE=Release",
-    "-DBUILD_SHARED_LIBS=ON"
 ]
 
 [package.build-dependencies]
@@ -24,10 +23,9 @@ fortran-compiler = "*"
 
 [package.host-dependencies]
 openblas = "*"
-openmp = "*"
-gsl = "*"
-qd = "*"
 slatec = "*"
+gsl = "*"
+openmp = "*"
 
 [package.run-dependencies]
 slatec = "*"
