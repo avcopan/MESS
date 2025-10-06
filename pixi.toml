@@ -1,0 +1,34 @@
+[workspace]
+channels = ["conda-forge", "Auto-Mech"]
+platforms = ["linux-64"]
+preview = ["pixi-build"]                                  
+
+[dependencies] 
+mess = { path = "." }
+
+[package] 
+name = "mess"
+version = "2.10.32"
+
+[package.build]
+backend = { name = "pixi-build-cmake", version = "0.3.*" }
+
+[package.build.config]
+extra-args = [
+    "-DCMAKE_BUILD_TYPE=Release",
+    "-DBLAS_LIBRARIES=$PREFIX/lib/libopenblas64_.so",
+    "-DLAPACK_LIBRARIES=$PREFIX/lib/libopenblas64_.so"
+]
+
+[package.build-dependencies]
+fortran-compiler = "*"
+
+[package.host-dependencies]
+openblas-ilp64 = "*"
+slatec = "*"
+gsl = "*"
+openmp = "*"
+
+[package.run-dependencies]
+openblas-ilp64 = "*"
+slatec = "*"
