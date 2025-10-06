@@ -8,7 +8,7 @@ mess = { path = "." }
 
 [package] 
 name = "mess"
-version = "2.10.24"
+version = "2.10.25"
 
 [package.build]
 backend = { name = "pixi-build-cmake", version = "0.3.*" }
@@ -19,7 +19,12 @@ extra-args = [
     "-DMKL_INTERFACE=ilp64",
     "-DMKL_THREADING=intel_thread",
     "-DMKL_LINK=dynamic",
-    "-DMKL_DIR=$PREFIX"
+    "-DMKL_DIR=$PREFIX",
+    "-DBLA_VENDOR=Intel10_64ilp",
+    "-DBLA_SIZEOF_INTEGER=8",
+    "-DBLA_THREAD=OMP",
+    "-DBLAS_LIBRARIES=$PREFIX/lib/libmkl_intel_ilp64.so",
+    "-DLAPACK_LIBRARIES=$PREFIX/lib/libmkl_intel_ilp64.so"
 ]
 
 [package.build-dependencies]

@@ -6,9 +6,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Og -ggdb")
 
 find_package(MKL CONFIG REQUIRED)
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
 find_library(SLATEC REQUIRED NAMES slatec libslatec)
 find_package(GSL REQUIRED)
 message(STATUS "Found MKL: ${MKL_LIBRARIES}")
+message(STATUS "Found BLAS: ${BLAS_LIBRARIES}")
+message(STATUS "Found LAPACK: ${LAPACK_LIBRARIES}")
 message(STATUS "Found SLATEC: ${SLATEC_LIBRARIES}")
 message(STATUS "Found GSL: ${GSL_LIBRARIES}")
 
@@ -59,6 +63,8 @@ target_link_libraries(mess
     PRIVATE
         messlibs
 	MKL::MKL
+	BLAS::BLAS
+	LAPACK::LAPACK
         ${GSL_LIBRARIES}
         ${SLATEC}
         ${CMAKE_DL_LIBS}
@@ -67,6 +73,8 @@ target_link_libraries(mess-v2
     PRIVATE
         messlibs
 	MKL::MKL
+	BLAS::BLAS
+	LAPACK::LAPACK
         ${GSL_LIBRARIES}
         ${SLATEC}
         ${CMAKE_DL_LIBS}
@@ -75,6 +83,8 @@ target_link_libraries(messpf
     PRIVATE
         messlibs
 	MKL::MKL
+	BLAS::BLAS
+	LAPACK::LAPACK
         ${GSL_LIBRARIES}
         ${SLATEC}
         ${CMAKE_DL_LIBS}
@@ -83,6 +93,8 @@ target_link_libraries(messsym
     PRIVATE
         messlibs
 	MKL::MKL
+	BLAS::BLAS
+	LAPACK::LAPACK
         ${GSL_LIBRARIES}
         ${SLATEC}
         ${CMAKE_DL_LIBS}
