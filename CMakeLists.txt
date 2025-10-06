@@ -1,20 +1,16 @@
 cmake_minimum_required(VERSION 3.22)
 project(MESS LANGUAGES C CXX Fortran)
 
-find_package(BLAS REQUIRED)
-find_package(LAPACK REQUIRED)
-find_library(SLATEC REQUIRED NAMES slatec libslatec)
-find_package(GSL REQUIRED)
-find_package(OpenMP REQUIRED)
-message(STATUS "Found BLAS: ${BLAS_LIBRARIES}")
-message(STATUS "Found LAPACK: ${LAPACK_LIBRARIES}")
-message(STATUS "Found SLATEC: ${SLATEC_LIBRARIES}")
-message(STATUS "Found GSL: ${GSL_LIBRARIES}")
-message(STATUS "Found OpenMP: ${OPENMP_LIBRARIES}")
-
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Og -ggdb")
+
+find_package(MKL CONFIG REQUIRED)
+find_library(SLATEC REQUIRED NAMES slatec libslatec)
+find_package(GSL REQUIRED)
+message(STATUS "Found MKL: ${MKL_LIBRARIES}")
+message(STATUS "Found SLATEC: ${SLATEC_LIBRARIES}")
+message(STATUS "Found GSL: ${GSL_LIBRARIES}")
 
 # Define the library
 set(MESS_SOURCES
@@ -61,40 +57,32 @@ add_executable(messsym ${PROJECT_SOURCE_DIR}/src/gumbo.cc)
 # Link executables
 target_link_libraries(mess
     PRIVATE
-        OpenMP::OpenMP_CXX
         messlibs
-        ${BLAS_LIBRARIES}
-        ${LAPACK_LIBRARIES}
+	MKL::MKL
         ${GSL_LIBRARIES}
         ${SLATEC}
         ${CMAKE_DL_LIBS}
 )
 target_link_libraries(mess-v2
     PRIVATE
-        OpenMP::OpenMP_CXX
         messlibs
-        ${BLAS_LIBRARIES}
-        ${LAPACK_LIBRARIES}
+	MKL::MKL
         ${GSL_LIBRARIES}
         ${SLATEC}
         ${CMAKE_DL_LIBS}
 )
 target_link_libraries(messpf
     PRIVATE
-        OpenMP::OpenMP_CXX
         messlibs
-        ${BLAS_LIBRARIES}
-        ${LAPACK_LIBRARIES}
+	MKL::MKL
         ${GSL_LIBRARIES}
         ${SLATEC}
         ${CMAKE_DL_LIBS}
 )
 target_link_libraries(messsym
     PRIVATE
-        OpenMP::OpenMP_CXX
         messlibs
-        ${BLAS_LIBRARIES}
-        ${LAPACK_LIBRARIES}
+	MKL::MKL
         ${GSL_LIBRARIES}
         ${SLATEC}
         ${CMAKE_DL_LIBS}

@@ -8,7 +8,7 @@ mess = { path = "." }
 
 [package] 
 name = "mess"
-version = "2.10.23"
+version = "2.10.24"
 
 [package.build]
 backend = { name = "pixi-build-cmake", version = "0.3.*" }
@@ -16,18 +16,21 @@ backend = { name = "pixi-build-cmake", version = "0.3.*" }
 [package.build.config]
 extra-args = [
     "-DCMAKE_BUILD_TYPE=Debug",
-    "-DBLAS_LIBRARIES=$PREFIX/lib/libopenblas64_.so",
-    "-DLAPACK_LIBRARIES=$PREFIX/lib/libopenblas64_.so"
+    "-DMKL_INTERFACE=ilp64",
+    "-DMKL_THREADING=intel_thread",
+    "-DMKL_LINK=dynamic",
+    "-DMKL_DIR=$PREFIX"
 ]
 
 [package.build-dependencies]
 fortran-compiler = "*"
 
 [package.host-dependencies]
-openblas-ilp64 = "*"
+mkl-include = "*"
+mkl-devel = "*"
+mkl = "*"
 slatec = "*"
 gsl = "*"
-openmp = "*"
 gdb = "*"
 
 [package.run-dependencies]
